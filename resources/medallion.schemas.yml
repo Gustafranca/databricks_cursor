@@ -1,0 +1,16 @@
+resources:
+  schemas:
+    bakehouse_bronze:
+      name: bakehouse_bronze
+      catalog_name: ${var.catalog}
+      comment: Raw Bakehouse ingestion layer
+
+    bakehouse_silver:
+      name: bakehouse_silver
+      catalog_name: ${var.catalog}
+      comment: Cleaned and conformed Bakehouse layer
+
+    bakehouse_gold:
+      name: bakehouse_gold
+      catalog_name: ${var.catalog}
+      comment: Analytics-ready Bakehouse marts
