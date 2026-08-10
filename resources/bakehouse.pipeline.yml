@@ -1,0 +1,21 @@
+resources:
+  pipelines:
+    bakehouse_medallion_isolated:
+      name: Bakehouse Medallion Pipeline
+      catalog: ${var.catalog}
+      target: ${resources.schemas.bakehouse_bronze.name}
+      serverless: true
+      continuous: false
+      photon: true
+      channel: CURRENT
+
+      root_path: ../src/pipelines/bakehouse
+      libraries:
+        - glob:
+            include: ../src/pipelines/bakehouse/transformations/**
+
+      configuration:
+        medallion_catalog: ${var.catalog}
+        bronze_schema: ${resources.schemas.bakehouse_bronze.name}
+        silver_schema: ${resources.schemas.bakehouse_silver.name}
+        gold_schema: ${resources.schemas.bakehouse_gold.name}

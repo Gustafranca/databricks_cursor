@@ -1,0 +1,9 @@
+resources:
+  jobs:
+    bakehouse_orchestration:
+      name: Bakehouse Medallion Orchestration
+      tasks:
+        - task_key: refresh_medallion_pipeline
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.bakehouse_medallion_isolated.id}
+            full_refresh: false
