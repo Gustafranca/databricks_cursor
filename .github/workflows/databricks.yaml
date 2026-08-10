@@ -10,10 +10,13 @@ permissions:
   contents: read
 
 env:
-  # So a IDENTIDADE vem do GitHub. O host mora no databricks.yml — fonte unica de verdade.
-  # Repo secret is DATABRICKS_SECRET; CLI expects DATABRICKS_CLIENT_SECRET for OAuth M2M.
+  # Host is pinned here so auth does not depend on a local ~/.databrickscfg in CI.
+  # Repo secret DATABRICKS_SECRET maps to the CLI's DATABRICKS_CLIENT_SECRET (OAuth M2M).
+  DATABRICKS_HOST: https://dbc-4a3c13b8-c6c0.cloud.databricks.com
   DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
   DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_SECRET }}
+  DATABRICKS_AUTH_TYPE: oauth-m2m
+  DATABRICKS_CONFIG_FILE: /dev/null
 
 jobs:
   # Roda em qualquer PR, inclusive de fork: nao toca no Databricks, nao precisa de secret.
@@ -43,7 +46,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: databricks/setup-cli@v1.8.0
         with:
-          version: 1.1.0
+          version: 1.11.0
+      - name: Verify CI credentials are present
+        run: |
+          if [ -z "$DATABRICKS_CLIENT_ID" ] || [ -z "$DATABRICKS_CLIENT_SECRET" ]; then
+            echo "Missing DATABRICKS_CLIENT_ID or DATABRICKS_SECRET GitHub Actions secrets."
+            exit 1
+          fi
+      - name: Check service principal auth
+        run: databricks current-user me
       - run: databricks bundle validate -t prod
 
   deploy:
@@ -64,7 +75,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: databricks/setup-cli@v1.8.0
         with:
-          version: 1.1.0
+          version: 1.11.0
       - run: databricks bundle deploy -t prod
       - name: O que foi para o workspace
         run: databricks bundle summary -t prod
