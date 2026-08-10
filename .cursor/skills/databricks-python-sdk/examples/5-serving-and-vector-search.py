@@ -6,12 +6,13 @@ Vector Search: https://databricks-sdk-py.readthedocs.io/en/latest/workspace/vect
 """
 
 from datetime import timedelta
+
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.serving import (
     EndpointCoreConfigInput,
+    Route,
     ServedEntityInput,
     TrafficConfig,
-    Route,
 )
 
 w = WorkspaceClient()
@@ -192,6 +193,7 @@ if results.next_page_token:
 # Upsert data into a Direct Vector Access index
 # Doc: https://databricks-sdk-py.readthedocs.io/en/latest/workspace/vectorsearch/vector_search_indexes.html
 import json
+
 w.vector_search_indexes.upsert_data_vector_index(
     index_name="main.default.direct_index",
     inputs_json=json.dumps([

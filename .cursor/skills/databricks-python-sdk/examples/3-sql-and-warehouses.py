@@ -6,12 +6,13 @@ Statement Execution: https://databricks-sdk-py.readthedocs.io/en/latest/workspac
 """
 
 from datetime import timedelta
+
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.sql import (
-    StatementState,
     Disposition,
     Format,
     StatementParameterListItem,
+    StatementState,
 )
 
 w = WorkspaceClient()
@@ -168,7 +169,7 @@ def query_to_dataframe(warehouse_id: str, sql: str):
     )
 
     if response.status.state != StatementState.SUCCEEDED:
-        raise Exception(f"Query failed: {response.status.error}")
+        raise RuntimeError(f"Query failed: {response.status.error}")
 
     columns = [col.name for col in response.manifest.schema.columns]
     data = response.result.data_array

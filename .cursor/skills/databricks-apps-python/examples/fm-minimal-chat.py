@@ -39,22 +39,20 @@ Databricks Apps Deployment:
 """
 
 import time
-from typing import Dict, List, Optional, Tuple
 
 import streamlit as st
+from llm_config import create_foundation_model_client, get_model_name
 from openai import OpenAI
 
-from llm_config import create_foundation_model_client, get_model_name
 
-
-def _get_forwarded_headers() -> Dict[str, str]:
+def _get_forwarded_headers() -> dict[str, str]:
     try:
-        return dict(getattr(st, "context").headers)
-    except Exception:
+        return dict(st.context.headers)
+    except (AttributeError, TypeError):
         return {}
 
 
-def get_viewer_identity() -> Tuple[Optional[str], Optional[str]]:
+def get_viewer_identity() -> tuple[str | None, str | None]:
     headers = _get_forwarded_headers()
     email = headers.get("X-Forwarded-Email") or headers.get("x-forwarded-email")
     token = headers.get("X-Forwarded-Access-Token") or headers.get(
@@ -70,10 +68,10 @@ def llm_chat(
     client: OpenAI,
     *,
     model: str,
-    messages: List[Dict[str, str]],
+    messages: list[dict[str, str]],
     max_tokens: int = 1000,
     temperature: float = 0.7,
-) -> Tuple[str, int]:
+) -> tuple[str, int]:
     """Call foundation model and return (response, latency_ms)."""
     t0 = time.perf_counter()
     resp = client.chat.completions.create(
@@ -146,36 +144,35 @@ def main():
             st.markdown(prompt)
 
         # Generate assistant response
-        with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                try:
-                    client = create_foundation_model_client(cache=st.session_state)
+        with st.chat_message("assistant"), st.spinner("Thinking..."):
+            try:
+                client = create_foundation_model_client(cache=st.session_state)
 
-                    # Call foundation model
-                    response, latency_ms = llm_chat(
-                        client,
-                        model=get_model_name(),
-                        messages=st.session_state.messages,
-                        max_tokens=1000,
-                        temperature=0.7,
-                    )
+                # Call foundation model
+                response, latency_ms = llm_chat(
+                    client,
+                    model=get_model_name(),
+                    messages=st.session_state.messages,
+                    max_tokens=1000,
+                    temperature=0.7,
+                )
 
-                    # Display response
-                    st.markdown(response)
-                    st.caption(f"⏱️ {latency_ms}ms")
+                # Display response
+                st.markdown(response)
+                st.caption(f"⏱️ {latency_ms}ms")
 
-                    # Add to chat history
-                    st.session_state.messages.append(
-                        {
-                            "role": "assistant",
-                            "content": response,
-                            "latency_ms": latency_ms,
-                        }
-                    )
+                # Add to chat history
+                st.session_state.messages.append(
+                    {
+                        "role": "assistant",
+                        "content": response,
+                        "latency_ms": latency_ms,
+                    }
+                )
 
-                except Exception as e:
-                    st.error(f"Error calling foundation model: {e}")
-                    st.session_state.messages.pop()  # Remove failed user message
+            except (OSError, RuntimeError, ValueError, TypeError) as e:
+                st.error(f"Error calling foundation model: {e}")
+                st.session_state.messages.pop()  # Remove failed user message
 
 
 if __name__ == "__main__":

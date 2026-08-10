@@ -25,12 +25,11 @@ Set `DATABRICKS_MODEL` to a valid serving endpoint name before running.
 import json
 import re
 import time
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import streamlit as st
-from openai import OpenAI
-
 from llm_config import create_foundation_model_client, get_model_name
+from openai import OpenAI
 
 
 # =============================================================================
@@ -53,7 +52,7 @@ def _content_to_text(content: Any) -> str:
         return content.decode("utf-8", errors="replace")
 
     if isinstance(content, list):
-        parts: List[str] = []
+        parts: list[str] = []
         for item in content:
             if isinstance(item, str):
                 parts.append(item)
@@ -71,7 +70,7 @@ def _content_to_text(content: Any) -> str:
 # =============================================================================
 # Pattern 2: Robust JSON Parsing
 # =============================================================================
-def _parse_json_object(response_text: str) -> Dict[str, Any]:
+def _parse_json_object(response_text: str) -> dict[str, Any]:
     """Best-effort parse of a JSON object from a model response.
 
     Handles common failure modes:
@@ -96,8 +95,8 @@ def _parse_json_object(response_text: str) -> Dict[str, Any]:
         obj = json.loads(text)
         if isinstance(obj, dict):
             return obj
-    except Exception:
-        pass
+    except (json.JSONDecodeError, TypeError):
+        obj = None
 
     # Extract first {...} block (handles extra text around JSON)
     start = text.find("{")
@@ -118,7 +117,7 @@ def _parse_json_object(response_text: str) -> Dict[str, Any]:
     # Final parse attempt
     obj = json.loads(candidate)
     if not isinstance(obj, dict):
-        raise ValueError("Model did not return a JSON object")
+        raise TypeError("Model did not return a JSON object")
     return obj
 
 
@@ -130,7 +129,7 @@ def llm_structured_call(
     system_prompt: str,
     user_prompt: str,
     model: str | None = None,
-) -> Tuple[Dict[str, Any], int]:
+) -> tuple[dict[str, Any], int]:
     """Call foundation model for structured output with retry on parse failure.
 
     Returns:
@@ -159,7 +158,7 @@ def llm_structured_call(
     # Try to parse response
     try:
         return _parse_json_object(content), elapsed_ms
-    except Exception as e:
+    except (json.JSONDecodeError, TypeError, ValueError) as e:
         # Retry with stricter prompt
         print(f"Parse failed (attempt 1): {e}. Retrying with stricter prompt...")
 
@@ -187,7 +186,7 @@ def llm_structured_call(
 def cached_structured_call(
     prompt: str,
     model: str | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Cache expensive structured LLM calls.
 
     Use @st.cache_data with TTL for:
@@ -211,7 +210,7 @@ def cached_structured_call(
 # =============================================================================
 def evaluate_content_quality(
     client: OpenAI, text: str
-) -> Tuple[Dict[str, Any], int]:
+) -> tuple[dict[str, Any], int]:
     """Evaluate content quality with structured output."""
 
     system_prompt = """You are a content quality evaluator.
@@ -239,7 +238,7 @@ Content to evaluate:
 # =============================================================================
 # Example: Entity Extraction
 # =============================================================================
-def extract_entities(client: OpenAI, text: str) -> Tuple[Dict[str, Any], int]:
+def extract_entities(client: OpenAI, text: str) -> tuple[dict[str, Any], int]:
     """Extract structured entities from text."""
 
     system_prompt = """You are an entity extraction system.
@@ -279,7 +278,7 @@ if __name__ == "__main__":
         quality_data, latency_ms = evaluate_content_quality(client, sample_text)
         print(f"✓ Completed in {latency_ms}ms")
         print(json.dumps(quality_data, indent=2))
-    except Exception as e:
+    except (OSError, RuntimeError, ValueError, TypeError, json.JSONDecodeError) as e:
         print(f"❌ Error: {e}")
 
     print("\n" + "=" * 60)
@@ -289,7 +288,7 @@ if __name__ == "__main__":
         entity_data, latency_ms = extract_entities(client, sample_text)
         print(f"✓ Completed in {latency_ms}ms")
         print(json.dumps(entity_data, indent=2))
-    except Exception as e:
+    except (OSError, RuntimeError, ValueError, TypeError, json.JSONDecodeError) as e:
         print(f"❌ Error: {e}")
 
 

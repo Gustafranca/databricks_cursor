@@ -23,15 +23,14 @@ Configuration:
 """
 
 import time
-from typing import Any, Callable, Dict, List, Tuple
-
-from openai import OpenAI
+from typing import Any
 
 from llm_config import (
     create_foundation_model_client,
     get_model_name,
     run_jobs_parallel,
 )
+from openai import OpenAI
 
 
 # =============================================================================
@@ -42,7 +41,7 @@ def llm_call(
     prompt: str,
     model: str | None = None,
     max_tokens: int = 500,
-) -> Tuple[str, int]:
+) -> tuple[str, int]:
     """Make a single LLM call and return (response, latency_ms)."""
     t0 = time.perf_counter()
     resp = client.chat.completions.create(
@@ -59,7 +58,7 @@ def llm_call(
 # =============================================================================
 # Example: Generic Technical Document Checks
 # =============================================================================
-def check_structure(client: OpenAI, text: str) -> Dict[str, Any]:
+def check_structure(client: OpenAI, text: str) -> dict[str, Any]:
     """Check if a technical document has clear section structure."""
     prompt = f"""Evaluate the structure of this technical document. Does it have clear section headings and a logical progression?
 
@@ -79,7 +78,7 @@ Answer with: PASS or FAIL, then brief explanation."""
     }
 
 
-def check_summary(client: OpenAI, text: str) -> Dict[str, Any]:
+def check_summary(client: OpenAI, text: str) -> dict[str, Any]:
     """Check if content has a concise executive summary near the top."""
     prompt = f"""Does this technical document start with a concise summary or key takeaways section in the first 10 percent?
 
@@ -99,7 +98,7 @@ Answer with: PASS or FAIL, then brief explanation."""
     }
 
 
-def check_examples(client: OpenAI, text: str) -> Dict[str, Any]:
+def check_examples(client: OpenAI, text: str) -> dict[str, Any]:
     """Check if content includes concrete examples."""
     prompt = f"""Does this technical document include concrete examples, code, or step-by-step guidance readers can adapt?
 
@@ -119,7 +118,7 @@ Answer with: PASS or FAIL, then brief explanation."""
     }
 
 
-def check_troubleshooting(client: OpenAI, text: str) -> Dict[str, Any]:
+def check_troubleshooting(client: OpenAI, text: str) -> dict[str, Any]:
     """Check if content covers troubleshooting or failure modes."""
     prompt = f"""Does this technical document include troubleshooting guidance, failure modes, or common pitfalls?
 
@@ -139,7 +138,7 @@ Answer with: PASS or FAIL, then brief explanation."""
     }
 
 
-def check_audience_fit(client: OpenAI, text: str) -> Dict[str, Any]:
+def check_audience_fit(client: OpenAI, text: str) -> dict[str, Any]:
     """Check if content matches a technical practitioner audience."""
     prompt = f"""Does this technical document appear written for practitioners, with the right level of specificity and useful context?
 

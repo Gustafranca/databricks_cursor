@@ -2,9 +2,10 @@ import concurrent.futures
 import os
 import threading
 import time
+from collections.abc import Callable, MutableMapping
 from collections.abc import MutableMapping as MutableMappingABC
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, MutableMapping, Tuple
+from typing import Any
 from urllib.parse import urlsplit
 
 from openai import OpenAI
@@ -26,8 +27,8 @@ class DatabricksLLMConfig:
 
 
 _token_lock = threading.Lock()
-_token_cache: Dict[str, Any] = {}
-_validation_cache: Dict[Tuple[str, str], int] = {}
+_token_cache: dict[str, Any] = {}
+_validation_cache: dict[tuple[str, str], int] = {}
 
 
 def _requests_module():
@@ -117,7 +118,7 @@ def get_model_name() -> str:
     return get_databricks_llm_config().model
 
 
-def _is_token_fresh(cache: MutableMapping[str, Any] | Dict[str, Any]) -> bool:
+def _is_token_fresh(cache: MutableMapping[str, Any] | dict[str, Any]) -> bool:
     return bool(
         cache.get("access_token")
         and int(cache.get("expires_at", 0)) > int(time.time()) + 30
@@ -144,7 +145,7 @@ def _write_token_cache(
 
 
 def _token_cache_matches(
-    cache: MutableMapping[str, Any] | Dict[str, Any],
+    cache: MutableMapping[str, Any] | dict[str, Any],
     config: DatabricksLLMConfig,
 ) -> bool:
     return bool(
@@ -258,7 +259,7 @@ def validate_databricks_llm_config(
                 headers=headers,
                 timeout=30,
             )
-        except Exception:
+        except requests.RequestException:
             list_response = None
         available: list[str] = []
         if list_response is not None and list_response.status_code < 400:
@@ -269,7 +270,7 @@ def validate_databricks_llm_config(
                     for endpoint in payload.get("endpoints", [])
                     if endpoint.get("name", "").strip()
                 )
-            except Exception:
+            except (ValueError, TypeError, KeyError, AttributeError):
                 available = []
         available_text = ", ".join(available[:10]) if available else "no endpoints were returned"
         raise DatabricksLLMConfigError(
@@ -312,9 +313,9 @@ def resolve_bearer_token(cache: MutableMapping[str, Any] | None = None) -> str:
 
 
 def run_jobs_parallel(
-    jobs: Dict[str, Tuple[Callable[..., Any], Tuple[Any, ...], Dict[str, Any]]],
+    jobs: dict[str, tuple[Callable[..., Any], tuple[Any, ...], dict[str, Any]]],
     max_workers: int | None = None,
-) -> Tuple[Dict[str, Any], list[str]]:
+) -> tuple[dict[str, Any], list[str]]:
     """Run independent jobs in parallel and collect per-job failures."""
     if max_workers is None:
         raw_worker_count = os.environ.get("LLM_MAX_CONCURRENCY", "5")
@@ -332,10 +333,10 @@ def run_jobs_parallel(
             "LLM_MAX_CONCURRENCY must be a positive integer."
         )
 
-    results: Dict[str, Any] = {}
+    results: dict[str, Any] = {}
     errors: list[str] = []
 
-    def _call(fn: Callable[..., Any], args: Tuple[Any, ...], kwargs: Dict[str, Any]) -> Any:
+    def _call(fn: Callable[..., Any], args: tuple[Any, ...], kwargs: dict[str, Any]) -> Any:
         return fn(*args, **kwargs)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=worker_count) as executor:
@@ -347,7 +348,7 @@ def run_jobs_parallel(
         for future, name in [(future, futures[future]) for future in futures]:
             try:
                 results[name] = future.result()
-            except Exception as exc:
+            except (OSError, RuntimeError, ValueError, TypeError) as exc:
                 errors.append(f"{name}: {type(exc).__name__}: {str(exc)[:200]}")
                 results[name] = None
 

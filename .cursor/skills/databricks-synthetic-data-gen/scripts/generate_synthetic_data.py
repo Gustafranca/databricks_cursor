@@ -10,14 +10,13 @@ Prerequisites:
 - Install dependencies locally: uv pip install faker pandas numpy holidays databricks-connect
 - Configure ~/.databrickscfg with serverless_compute_id = auto
 """
-import sys
-import os
-from pyspark.sql import functions as F
-from pyspark.sql.window import Window
-from pyspark.sql.types import StringType, DoubleType, StructType, StructField, IntegerType
+from datetime import UTC, datetime, timedelta
+
 import numpy as np
 import pandas as pd
-from datetime import datetime, timedelta
+from pyspark.sql import functions as F
+from pyspark.sql.types import DoubleType, StringType
+from pyspark.sql.window import Window
 
 # =============================================================================
 # CONFIGURATION
@@ -37,7 +36,7 @@ N_ORDERS = 50_000
 PARTITIONS = 16  # Adjust: 8 for <100K, 32 for 1M+
 
 # Date range - last 6 months from today
-END_DATE = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+END_DATE = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
 START_DATE = END_DATE - timedelta(days=180)
 
 # Write mode - "overwrite" for one-time, "append" for incremental
@@ -291,10 +290,10 @@ print("=" * 80)
 print(f"Catalog: {CATALOG}")
 print(f"Schema: {SCHEMA}")
 print(f"Volume: {VOLUME_PATH}")
-print(f"\nGenerated data:")
+print("\nGenerated data:")
 print(f"  - customers: {N_CUSTOMERS:,} rows")
 print(f"  - orders: {N_ORDERS:,} rows")
 if INJECT_BAD_DATA:
-    print(f"  - Bad data injected: nulls, outliers, orphan FKs")
+    print("  - Bad data injected: nulls, outliers, orphan FKs")
 print(f"\nDate range: {START_DATE.date()} to {END_DATE.date()}")
 print("=" * 80)

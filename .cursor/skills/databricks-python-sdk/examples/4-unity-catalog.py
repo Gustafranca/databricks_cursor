@@ -189,11 +189,12 @@ w.volumes.delete(name="main.default.my_volume")
 # See also: https://databricks-sdk-py.readthedocs.io/en/latest/workspace/files/files.html
 
 # Upload file to volume
-w.files.upload(
-    file_path="/Volumes/main/default/my_volume/data.csv",
-    contents=open("local_file.csv", "rb"),
-    overwrite=True
-)
+with open("local_file.csv", "rb") as upload_file:
+    w.files.upload(
+        file_path="/Volumes/main/default/my_volume/data.csv",
+        contents=upload_file,
+        overwrite=True,
+    )
 
 # List files in volume
 for entry in w.files.list_directory_contents("/Volumes/main/default/my_volume/"):

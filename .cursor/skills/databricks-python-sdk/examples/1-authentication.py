@@ -4,7 +4,7 @@ Databricks SDK Authentication Examples
 Documentation: https://databricks-sdk-py.readthedocs.io/en/latest/authentication.html
 """
 
-from databricks.sdk import WorkspaceClient, AccountClient
+from databricks.sdk import AccountClient, WorkspaceClient
 
 # =============================================================================
 # Pattern 1: Environment Variables (Recommended)

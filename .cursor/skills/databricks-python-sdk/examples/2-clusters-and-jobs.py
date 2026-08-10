@@ -6,9 +6,10 @@ Jobs API: https://databricks-sdk-py.readthedocs.io/en/latest/workspace/jobs/jobs
 """
 
 from datetime import timedelta
+
 from databricks.sdk import WorkspaceClient
-from databricks.sdk.service.compute import ClusterSpec, AutoScale
-from databricks.sdk.service.jobs import Task, NotebookTask, JobCluster
+from databricks.sdk.service.compute import AutoScale, ClusterSpec
+from databricks.sdk.service.jobs import JobCluster, NotebookTask, Task
 
 w = WorkspaceClient()
 

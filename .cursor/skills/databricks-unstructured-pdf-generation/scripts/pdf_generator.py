@@ -22,7 +22,6 @@ import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
@@ -34,10 +33,10 @@ MAX_WORKERS = 4
 class ConversionResult:
     """Result from converting HTML to PDF."""
     html_path: str
-    pdf_path: Optional[str] = None
+    pdf_path: str | None = None
     success: bool = False
     skipped: bool = False
-    error: Optional[str] = None
+    error: str | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -137,7 +136,7 @@ def convert_html_to_pdf(
     except ImportError:
         result.error = "plutoprint not installed. Run: pip install plutoprint"
         logger.error(result.error)
-    except Exception as e:
+    except (OSError, RuntimeError, ValueError, TypeError) as e:
         result.error = str(e)
         logger.error(f"Failed: {html_path.name} - {e}")
 
@@ -241,7 +240,7 @@ Examples:
 
         if input_path.is_file():
             # Single file conversion
-            if not input_path.suffix.lower() == ".html":
+            if input_path.suffix.lower() != ".html":
                 print(f"Error: Input file must be .html: {input_path}")
                 sys.exit(1)
 
