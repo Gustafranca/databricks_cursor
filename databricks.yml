@@ -19,6 +19,9 @@ variables:
 targets:
   dev:
     default: true
+    # Prefixes resource and schema names with a "dev <user>" marker and pauses
+    # schedules, keeping dev fully separated from prod in the shared workspace.
+    mode: development
     workspace:
       host: https://dbc-4a3c13b8-c6c0.cloud.databricks.com
     variables:
