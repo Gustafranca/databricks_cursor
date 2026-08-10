@@ -34,3 +34,5 @@ targets:
     permissions:
       - user_name: gustavofrancaa2001@gmail.com
         level: CAN_MANAGE
+      - service_principal_name: 3d1cdf7a-4abd-4c51-a303-6e8068fcd2a7
+        level: CAN_MANAGE
