@@ -11,8 +11,9 @@ permissions:
 
 env:
   # So a IDENTIDADE vem do GitHub. O host mora no databricks.yml — fonte unica de verdade.
+  # Repo secret is DATABRICKS_SECRET; CLI expects DATABRICKS_CLIENT_SECRET for OAuth M2M.
   DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
-  DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+  DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_SECRET }}
 
 jobs:
   # Roda em qualquer PR, inclusive de fork: nao toca no Databricks, nao precisa de secret.

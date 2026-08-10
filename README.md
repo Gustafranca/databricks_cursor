@@ -241,7 +241,7 @@ Workflow: `.github/workflows/databricks.yaml`
 2. **validate** — `databricks bundle validate -t prod`
 3. **deploy** — `databricks bundle deploy -t prod` em push para `main`, com environment `prod` (aprovação humana)
 
-Secrets necessários: `DATABRICKS_CLIENT_ID`, `DATABRICKS_CLIENT_SECRET` (service principal). O host vem do `databricks.yml`.
+Secrets necessários: `DATABRICKS_CLIENT_ID`, `DATABRICKS_SECRET` (service principal OAuth secret; mapped to `DATABRICKS_CLIENT_SECRET` in the workflow). O host vem do `databricks.yml`.
 
 ---
 
