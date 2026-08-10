@@ -8,7 +8,6 @@ from contextlib import contextmanager
 try:
     import csv
     import json
-    import os
 
     import pytest
     from databricks.connect import DatabricksSession
@@ -20,6 +19,15 @@ except ImportError:
     )
 
 
+def _skip_connect() -> bool:
+    """True when CI/offline mode should avoid Databricks Connect/auth."""
+    return os.environ.get("DATABRICKS_SKIP_CONNECT", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+
+
 @pytest.fixture()
 def spark() -> SparkSession:
     """Provide a SparkSession fixture for tests.
@@ -29,6 +37,8 @@ def spark() -> SparkSession:
             df = spark.createDataFrame([(1,)], ["x"])
             assert df.count() == 1
     """
+    if _skip_connect():
+        pytest.skip("DATABRICKS_SKIP_CONNECT is set; Spark/Databricks Connect disabled")
     return DatabricksSession.builder.getOrCreate()
 
 
@@ -84,6 +94,9 @@ def _allow_stderr_output(config: pytest.Config):
 
 def pytest_configure(config: pytest.Config):
     """Configure pytest session."""
+    if _skip_connect():
+        return
+
     with _allow_stderr_output(config):
         _enable_fallback_compute()
 
